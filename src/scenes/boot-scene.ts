@@ -74,5 +74,10 @@ export class BootScene extends Phaser.Scene {
 
     // Source: Open Game Art
     this.load.image('man', 'assets/sprites/character.png');
+
+    this.load.image('backdrop', 'assets/sprites/platformer-backdrop.png');
+    this.load.image('cannon_head', 'assets/sprites/cannon_head.png');
+    this.load.image('cannon_body', 'assets/sprites/cannon_body.png');
+    this.load.spritesheet('chick', 'assets/sprites/chick.png', { frameWidth: 16, frameHeight: 18 });
   }
 }

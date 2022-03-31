@@ -7,6 +7,7 @@ const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
   key: 'Game',
 };
 
+let container;
 export class GameScene extends Phaser.Scene {
   public speed = 200;
 
@@ -18,32 +19,45 @@ export class GameScene extends Phaser.Scene {
   }
 
   public create(): void {
-    // Add a player sprite that can be moved around. Place him in the middle of the screen.
-    this.image = this.physics.add.sprite(getGameWidth(this) / 2, getGameHeight(this) / 2, 'man');
+    this.anims.create({ key: 'fly', frames: this.anims.generateFrameNumbers('chick', {frames: [0, 1, 2, 3]}), frameRate: 5, repeat: -1 });
 
-    // This is a nice helper Phaser provides to create listeners for some of the most common keys.
-    this.cursorKeys = this.input.keyboard.createCursorKeys();
+    this.add.image(320, 256, 'backdrop').setScale(2);
+
+    var cannonHead = this.add.image(130, 416, 'cannon_head').setDepth(1);
+    var cannon = this.add.image(130, 464, 'cannon_body').setDepth(1);
+
+    
+    
+    var cannonHeadEnemy = this.physics.add.staticImage(530, 416, 'cannon_head').setDepth(1);
+    var cannonEnemy = this.add.image(530, 464, 'cannon_body').setDepth(1);
+
+    var chick = this.physics.add.sprite(cannon.x, cannon.y - 50, 'chick').setScale(2);
+    var gfx = this.add.graphics().setDefaultStyles({ lineStyle: { width: 10, color: 0xffdd00, alpha: 0.5 } });
+    var line = new Phaser.Geom.Line();
+    var angle = 0;
+
+    chick.setCollideWorldBounds(true)
+
+    this.physics.add.collider(chick, cannonHeadEnemy);
+
+
+    chick.disableBody(true, true);
+
+    this.input.on('pointermove', function (pointer) {
+        angle = Phaser.Math.Angle.BetweenPoints(cannon, pointer);
+        cannonHead.rotation = angle;
+        Phaser.Geom.Line.SetToAngle(line, cannon.x, cannon.y - 50, angle, 128);
+        gfx.clear().strokeLineShape(line);
+    }, this);
+
+    this.input.on('pointerup', function () {
+        chick.enableBody(true, cannon.x, cannon.y - 50, true, true);
+        chick.play('fly');
+        this.physics.velocityFromRotation(angle, 600, chick.body.velocity);
+    }, this);
   }
 
   public update(): void {
-    // Every frame, we create a new velocity for the sprite based on what keys the player is holding down.
-    const velocity = new Phaser.Math.Vector2(0, 0);
 
-    if (this.cursorKeys.left.isDown) {
-      velocity.x -= 1;
-    }
-    if (this.cursorKeys.right.isDown) {
-      velocity.x += 1;
-    }
-    if (this.cursorKeys.up.isDown) {
-      velocity.y -= 1;
-    }
-    if (this.cursorKeys.down.isDown) {
-      velocity.y += 1;
-    }
-
-    // We normalize the velocity so that the player is always moving at the same speed, regardless of direction.
-    const normalizedVelocity = velocity.normalize();
-    this.image.setVelocity(normalizedVelocity.x * this.speed, normalizedVelocity.y * this.speed);
   }
 }
